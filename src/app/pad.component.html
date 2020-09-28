@@ -1,0 +1,138 @@
+<welcome-modal [@fadeInOut] *ngIf="getView() == PadView.Welcome">
+    <modal-body>
+
+        <!--     <div *ngIf="media.needsCalibration() && browserIsSupported()">
+            <button (click)="startAudioSetup()">Setup Voice</button>
+            <button class="opt-out-button text invert" (click)="optOutOfVoice()">I don't want to use voice chat.</button>
+        </div> -->
+        <div *ngIf="!!media.needsCalibration() && browserIsSupported()">
+            <p *ngIf="media.isOptOut()" class="warning">You've disabled your microphone. Others in your pad won't be able to hear you.</p>
+            <button (click)="joinPad()" *ngIf="!isSandboxUrl()">
+                <span *ngIf="hasPad()">Join <em>{{getJoinId()}}</em></span>
+                <span *ngIf="!hasPad()">Start a new pad</span>
+            </button>
+
+            <button (click)="sandboxPad()" *ngIf="isSandboxUrl()">Setup Sandbox</button>
+            <p class="reconfigure-prompt" *ngIf="media.isCalibrated()"><button (click)="media.clearCalibration()" class="text invert inline">You're all set. Click here if you want to reset your audio settings.</button></p>
+        </div>
+
+        <p *ngIf="isPadLive" class="error">
+            It seems Interviewer has ended the interview. <a href="/" style="color:rgb(0,143,250)">Login here</a> To create a new pad.
+        </p>
+        <p *ngIf="!hasWebRTC()" class="error">
+            It looks like your browser doesn't fully support WebRTC. <a href="https://webrtc.org/">Click here</a> for a list of compatible browsers.
+        </p>
+        <p *ngIf="!hasWebAudio()" class="error">
+            It looks like your browser doesn't fully support WebAudio. <a href="http://caniuse.com/#feat=audio-api">Click here</a> for a list of compatible browsers.
+        </p>
+    </modal-body>
+</welcome-modal>
+<audio-modal [@fadeInOut] *ngIf="getView() == PadView.AudioSetup">
+    <modal-body>
+        <div [@fadeInOut] *ngIf="!media.isCalibrating() && media.needsCalibration()">
+            <h2>Audio Setup</h2>
+            <div *ngIf="media.getCalibrationAttempts() == 0">
+                <p>Please ensure your microphone is plugged in. We strongly recommended headphones.</p>
+                <p>Press the button below and read the text that appears. Press it again when you're finished.</p>
+            </div>
+            <div *ngIf="media.getCalibrationAttempts() > 0">
+                <p class="warning">Setup unsuccessful, please check your microphone and try again.</p>
+                <p *ngIf="media.getCalibrationQuality() === 0.0">No voice data recorded.</p>
+                <p *ngIf="media.getCalibrationQuality() > 0.0 && media.getCalibrationQuality() < 1.0">The recording was low quality: make sure to read all of the phrases at an even pace.</p>
+                <p *ngIf="isChromeOnMac()">
+                    It looks like you're using Chrome on OS X. If your microphone is connected but you're not getting any input you might be hitting <a href="https://bugs.chromium.org/p/webrtc/issues/detail?id=4799">this bug</a> (which requires restarting
+                    Chrome).
+                </p>
+                <p *ngIf="media.getCalibrationAttempts() > 1">
+                    If you're still having trouble please <a href="https://github.com/blindpad/blindpad/issues/new">open an issue</a> on Github.
+                </p>
+            </div>
+        </div>
+        <div [@fadeInOut] *ngIf="media.needsCalibration()">
+            <button class="start-button" [disabled]="media.getLocalStream().value == null" (click)="media.setCalibrating(!media.isCalibrating())">
+                {{media.isCalibrating() ? "Stop" : "Begin"}}
+            </button>
+            <audio-monitor class="voice" [analyser]="media.getLocalAnalyser()"></audio-monitor>
+            <button class="opt-out-button text invert" *ngIf="!media.isCalibrating()" (click)="optOutOfVoice()">I don't want to use voice chat.</button>
+            <test-phrases [@fadeInOut] *ngIf="media.isCalibrating()">
+                <p *ngFor="let phrase of media.getPhrases()">{{phrase}}</p>
+            </test-phrases>
+        </div>
+    </modal-body>
+</audio-modal>
+<pad-page [class.disabled]="getView() != PadView.Editor" class="disabled">
+    <pad-header>
+        <button (click)="toggleMenu()" class="hamburger" *ngIf="!isSandboxUrl()">
+              <span>toggle menu</span>
+            </button>
+        <bp-logo routerLink="/"><i class="fa fa-code" aria-hidden="true"> </i> DEV<span class="primary">PAD</span></bp-logo>
+
+        <nav *ngIf="hasPad()">
+
+            <button id="panelLang" class="mode-button" *ngIf="!!getPadMode()" (click)="onModeButtonClick()">
+                    {{ getPadMode().name }}
+               <i class="fa fa-code" aria-hidden="true"></i> 
+            </button>
+
+            <button id="submit" type="button" class="btn btn-sm btn-run" (click)="submit()">
+             <i class="fa fa-play" aria-hidden="true"></i>
+              <span *ngIf="isRunning()"> Run </span>
+              <span *ngIf="!isRunning()">Running</span>
+            </button>
+
+            <button *ngIf="getCurrentUser() && !isSandboxUrl()" (click)="endPad()">
+                <span *ngIf="hasPad()">Close <em>{{getJoinId()}}</em></span>
+                <span *ngIf="!hasPad()">Start a new pad</span>
+            </button>
+
+
+            <mode-choices id="mode-choices-admin" [@fadeInOut] *ngIf="visibleModeChoices != null && getCurrentUser()">
+                <mode-choice *ngFor="let mode of visibleModeChoices" (click)="onModeChoice(mode)" [class.has-children]="mode.children.length > 0" [class.is-picked]="mode == getPadMode()">
+                    {{ mode.name }}
+                </mode-choice>
+            </mode-choices>
+
+            <mode-choices id="mode-choices" [@fadeInOut] *ngIf="visibleModeChoices != null && !getCurrentUser()">
+                <mode-choice *ngFor="let mode of visibleModeChoices" (click)="onModeChoice(mode)" [class.has-children]="mode.children.length > 0" [class.is-picked]="mode == getPadMode()">
+                    {{ mode.name }}
+                </mode-choice>
+            </mode-choices>
+
+        </nav>
+    </pad-header>
+
+    <pad-body>
+        <pad-toolbar [@slideInOut]="menuState" *ngIf="!isSandboxUrl()">
+            <pad-status *ngIf="!isConnected()">Looking for others...</pad-status>
+            <pad-users>
+                <user *ngFor="let user of getUsers()" [model]="user"></user>
+            </pad-users>
+
+        </pad-toolbar>
+        <editor [pad]="getPad()"></editor>
+
+    </pad-body>
+
+    <div id="inoutbox">
+
+        <div class="panel-input panel-default">
+            <div class="panel-heading">
+                <span>Input</span>
+                <a (click)="onCopyInput" id="copy-input">
+                    <i class="fa fa-paperclip"></i>
+                </a>
+            </div>
+            <textarea class="textbox" id="test-input" name="input" [(ngModel)]="input" rows="2" wrap="off" (change)="customInputChange(input)" placeholder="Specify Input" required></textarea>
+        </div>
+
+        <div class="panel-output panel-default">
+            <div class="panel-heading">
+                <span>Output</span>
+                <a id="copy-output">
+                    <i class="fa fa-paperclip"></i>
+                </a>
+            </div>
+            <pre id="output">{{output}}</pre>
+        </div>
+    </div>
+</pad-page>

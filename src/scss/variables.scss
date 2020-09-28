@@ -1,0 +1,24 @@
+$color-primary:        #2196F3;
+$color-primary-dark:   darken($color-primary, 20%);
+$color-primary-light:  lighten($color-primary, 20%);
+$color-primary-text:   #FFFFFF;
+$color-accent:         #00BCD4;
+$color-primary-text:   #FEFEFE;
+$color-primary-logo:   #e31d3b;
+$color-secondary-text: #CACACA;
+
+$color-disabled:       transparentize(#BDBDBD, 0.8);
+$color-warning:        $color-primary;
+$color-error:          #F44336;
+
+$color-editor:         #1E1E1E;
+$color-background:     #272727;
+$color-header:         $color-background;
+$color-divider:        #2E2F2A;
+$color-overlay:        fade-out($color-background, 0.5);
+
+$body-font:             Lato,'Helvetica Neue',Arial,Helvetica,sans-serif;
+
+$content-max-width:     825px;
+$content-min-width:     500px;
+$header-height:         33px;

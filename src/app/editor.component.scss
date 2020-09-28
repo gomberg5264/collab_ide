@@ -1,0 +1,34 @@
+// TOOD: put this in a :host block and we can turn view encapsulation back on
+.CodeMirror {
+    height: 60vw;
+}
+
+.CodeMirror-activeline {
+    border: 0.2px solid #C0C0C0;
+    height: 24px;
+}
+
+.cm-s-material-darker .CodeMirror-linenumber {
+    color: #ffffff;
+    font-size: 16px;
+    text-align: left;
+}
+
+.CodeMirror-lines {
+    margin-right: 180px;
+}
+
+.CodeMirror-wrap pre.CodeMirror-line,
+.CodeMirror-wrap pre.CodeMirror-line-like {
+    line-height: 23px;
+    font-size: 14px;
+}
+
+// TODO: fix this via a fancy angular pseudo-selector for searching up the tree
+.disabled {
+    editor {
+        .CodeMirror-linenumber {
+            opacity: 0.0;
+        }
+    }
+}
